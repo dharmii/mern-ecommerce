@@ -31,6 +31,6 @@ Check AdminPanel Live Link Here : https://mern-ecommerceadminpanel-9dxtwa5u2.ver
 - **Database**:  MongoDB
 - **Payment Integration**: Stripe
 - **Deployment**:
--**Frontend** :Deployed on Vercel 
+- **Frontend** :Deployed on Vercel 
 - **Backend** : Deployed on render
 
