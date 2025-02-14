@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Navbar from './components/navBar'
+import Navbar from './components/NavBar'
 import Sidebar from './components/Sidebar'
 import Add from './pages/Add.jsx';
 import List from './pages/List.jsx';
