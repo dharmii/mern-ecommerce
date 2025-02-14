@@ -5,9 +5,10 @@
  */
 
 const MongooseError = require('../error/index');
-const SchemaNumberOptions = require('../options/SchemaNumberOptions');
-const SchemaType = require('../schematype');
+const SchemaNumberOptions = require('../options/schemaNumberOptions');
+const SchemaType = require('../schemaType');
 const castNumber = require('../cast/number');
+const createJSONSchemaTypeDefinition = require('../helpers/createJSONSchemaTypeDefinition');
 const handleBitwiseOperator = require('./operators/bitwise');
 const utils = require('../utils');
 
@@ -66,6 +67,8 @@ SchemaNumber.get = SchemaType.get;
  */
 
 SchemaNumber.set = SchemaType.set;
+
+SchemaNumber.setters = [];
 
 /*!
  * ignore
@@ -204,7 +207,7 @@ SchemaNumber.prototype.checkRequired = function checkRequired(value, doc) {
  * @param {Number} value minimum number
  * @param {String} [message] optional custom error message
  * @return {SchemaType} this
- * @see Customized Error Messages #error_messages_MongooseError-messages
+ * @see Customized Error Messages https://mongoosejs.com/docs/api/error.html#Error.messages
  * @api public
  */
 
@@ -258,7 +261,7 @@ SchemaNumber.prototype.min = function(value, message) {
  * @param {Number} maximum number
  * @param {String} [message] optional custom error message
  * @return {SchemaType} this
- * @see Customized Error Messages #error_messages_MongooseError-messages
+ * @see Customized Error Messages https://mongoosejs.com/docs/api/error.html#Error.messages
  * @api public
  */
 
@@ -302,7 +305,7 @@ SchemaNumber.prototype.max = function(value, message) {
  * @param {Array} values allowed values
  * @param {String} [message] optional custom error message
  * @return {SchemaType} this
- * @see Customized Error Messages #error_messages_MongooseError-messages
+ * @see Customized Error Messages https://mongoosejs.com/docs/api/error.html#Error.messages
  * @api public
  */
 
@@ -352,10 +355,10 @@ SchemaNumber.prototype.enum = function(values, message) {
  * @api private
  */
 
-SchemaNumber.prototype.cast = function(value, doc, init) {
+SchemaNumber.prototype.cast = function(value, doc, init, prev, options) {
   if (typeof value !== 'number' && SchemaType._isRef(this, value, doc, init)) {
     if (value == null || utils.isNonBuiltinObject(value)) {
-      return this._castRef(value, doc, init);
+      return this._castRef(value, doc, init, options);
     }
   }
 
@@ -397,18 +400,18 @@ function handleArray(val) {
   });
 }
 
-SchemaNumber.prototype.$conditionalHandlers =
-    utils.options(SchemaType.prototype.$conditionalHandlers, {
-      $bitsAllClear: handleBitwiseOperator,
-      $bitsAnyClear: handleBitwiseOperator,
-      $bitsAllSet: handleBitwiseOperator,
-      $bitsAnySet: handleBitwiseOperator,
-      $gt: handleSingle,
-      $gte: handleSingle,
-      $lt: handleSingle,
-      $lte: handleSingle,
-      $mod: handleArray
-    });
+SchemaNumber.prototype.$conditionalHandlers = {
+  ...SchemaType.prototype.$conditionalHandlers,
+  $bitsAllClear: handleBitwiseOperator,
+  $bitsAnyClear: handleBitwiseOperator,
+  $bitsAllSet: handleBitwiseOperator,
+  $bitsAnySet: handleBitwiseOperator,
+  $gt: handleSingle,
+  $gte: handleSingle,
+  $lt: handleSingle,
+  $lte: handleSingle,
+  $mod: handleArray
+};
 
 /**
  * Casts contents for queries.
@@ -418,17 +421,39 @@ SchemaNumber.prototype.$conditionalHandlers =
  * @api private
  */
 
-SchemaNumber.prototype.castForQuery = function($conditional, val) {
+SchemaNumber.prototype.castForQuery = function($conditional, val, context) {
   let handler;
-  if (arguments.length === 2) {
+  if ($conditional != null) {
     handler = this.$conditionalHandlers[$conditional];
     if (!handler) {
       throw new CastError('number', val, this.path, null, this);
     }
-    return handler.call(this, val);
+    return handler.call(this, val, context);
   }
-  val = this._castForQuery($conditional);
+
+  try {
+    val = this.applySetters(val, context);
+  } catch (err) {
+    if (err instanceof CastError && err.path === this.path && this.$fullPath != null) {
+      err.path = this.$fullPath;
+    }
+    throw err;
+  }
+
   return val;
+};
+
+/**
+ * Returns this schema type's representation in a JSON schema.
+ *
+ * @param [options]
+ * @param [options.useBsonType=false] If true, return a representation with `bsonType` for use with MongoDB's `$jsonSchema`.
+ * @returns {Object} JSON schema properties
+ */
+
+SchemaNumber.prototype.toJSONSchema = function toJSONSchema(options) {
+  const isRequired = (this.options.required && typeof this.options.required !== 'function') || this.path === '_id';
+  return createJSONSchemaTypeDefinition('number', 'number', options?.useBsonType, isRequired);
 };
 
 /*!
