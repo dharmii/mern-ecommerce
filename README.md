@@ -12,11 +12,7 @@ The integration with Stripe for payments, combined with a JWT-based authenticati
 
 Check Frontend Live Link Here : https://ecommercedharmika.vercel.app 
 
-<<<<<<< HEAD
 Check Backend Live Link Here:  https://mern-ecommerce-7x4l.onrender.com
-=======
-Check Backend Live Link Here:  https://mern-ecommerce-r3hz.onrender.com
->>>>>>> 2fa6580f278c348f398d5e35338500bcd1843cdf
 
 Check AdminPanel Live Link Here : https://mern-ecommerceadminpanel-9dxtwa5u2.vercel.app
 
