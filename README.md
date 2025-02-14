@@ -19,26 +19,17 @@ Check AdminPanel Live Link Here : https://mern-ecommerceadminpanel-9dxtwa5u2.ver
 ## Features
 
 - **User Authentication**: Sign up, login, and manage user profiles
-- 
 - **Product Browsing**: Browse and filter products by categories
-- 
 - **Cart Management**: Add, remove, and update items in the cart
-- 
 - **Checkout**: Secure checkout and order management
-- 
 - **Admin Panel**: Add, edit, and delete products
-- 
 - **Payment Integration**: Payment processing using Stripe or other methods
 ## Tech Stack
 
-- **Frontend**:
--  React, Redux, Tailwind CSS, React Router
-- **Backend**:
--  Node.js, Express.js, JWT Authentication
-- **Database**:
--  MongoDB
-- **Payment Integration**:
-- Stripe
+- **Frontend**:  React, Redux, Tailwind CSS, React Router
+- **Backend**:  Node.js, Express.js, JWT Authentication
+- **Database**:  MongoDB
+- **Payment Integration**: Stripe
 - **Deployment**:
 -**Frontend** :Deployed on Vercel 
 - **Backend** : Deployed on render
