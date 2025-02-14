@@ -5,9 +5,10 @@
 'use strict';
 
 const MongooseError = require('../error/index');
-const SchemaDateOptions = require('../options/SchemaDateOptions');
-const SchemaType = require('../schematype');
+const SchemaDateOptions = require('../options/schemaDateOptions');
+const SchemaType = require('../schemaType');
 const castDate = require('../cast/date');
+const createJSONSchemaTypeDefinition = require('../helpers/createJSONSchemaTypeDefinition');
 const getConstructorName = require('../helpers/getConstructorName');
 const utils = require('../utils');
 
@@ -69,6 +70,28 @@ SchemaDate._cast = castDate;
  */
 
 SchemaDate.set = SchemaType.set;
+
+SchemaDate.setters = [];
+
+/**
+ * Attaches a getter for all Date instances
+ *
+ * #### Example:
+ *
+ *     // Always convert Dates to string
+ *     mongoose.Date.get(v => v.toString());
+ *
+ *     const Model = mongoose.model('Test', new Schema({ date: { type: Date, default: () => new Date() } }));
+ *     typeof (new Model({}).date); // 'string'
+ *
+ * @param {Function} getter
+ * @return {this}
+ * @function get
+ * @static
+ * @api public
+ */
+
+SchemaDate.get = SchemaType.get;
 
 /**
  * Get/set the function used to cast arbitrary values to dates.
@@ -234,7 +257,7 @@ SchemaDate.prototype.checkRequired = function(value, doc) {
  * @param {Date} value minimum date
  * @param {String} [message] optional custom error message
  * @return {SchemaType} this
- * @see Customized Error Messages #error_messages_MongooseError-messages
+ * @see Customized Error Messages https://mongoosejs.com/docs/api/error.html#Error.messages
  * @api public
  */
 
@@ -296,7 +319,7 @@ SchemaDate.prototype.min = function(value, message) {
  * @param {Date} maximum date
  * @param {String} [message] optional custom error message
  * @return {SchemaType} this
- * @see Customized Error Messages #error_messages_MongooseError-messages
+ * @see Customized Error Messages https://mongoosejs.com/docs/api/error.html#Error.messages
  * @api public
  */
 
@@ -366,13 +389,13 @@ function handleSingle(val) {
   return this.cast(val);
 }
 
-SchemaDate.prototype.$conditionalHandlers =
-    utils.options(SchemaType.prototype.$conditionalHandlers, {
-      $gt: handleSingle,
-      $gte: handleSingle,
-      $lt: handleSingle,
-      $lte: handleSingle
-    });
+SchemaDate.prototype.$conditionalHandlers = {
+  ...SchemaType.prototype.$conditionalHandlers,
+  $gt: handleSingle,
+  $gte: handleSingle,
+  $lt: handleSingle,
+  $lte: handleSingle
+};
 
 
 /**
@@ -383,9 +406,16 @@ SchemaDate.prototype.$conditionalHandlers =
  * @api private
  */
 
-SchemaDate.prototype.castForQuery = function($conditional, val) {
-  if (arguments.length !== 2) {
-    return this._castForQuery($conditional);
+SchemaDate.prototype.castForQuery = function($conditional, val, context) {
+  if ($conditional == null) {
+    try {
+      return this.applySetters(val, context);
+    } catch (err) {
+      if (err instanceof CastError && err.path === this.path && this.$fullPath != null) {
+        err.path = this.$fullPath;
+      }
+      throw err;
+    }
   }
 
   const handler = this.$conditionalHandlers[$conditional];
@@ -395,6 +425,19 @@ SchemaDate.prototype.castForQuery = function($conditional, val) {
   }
 
   return handler.call(this, val);
+};
+
+/**
+ * Returns this schema type's representation in a JSON schema.
+ *
+ * @param [options]
+ * @param [options.useBsonType=false] If true, return a representation with `bsonType` for use with MongoDB's `$jsonSchema`.
+ * @returns {Object} JSON schema properties
+ */
+
+SchemaDate.prototype.toJSONSchema = function toJSONSchema(options) {
+  const isRequired = this.options.required && typeof this.options.required !== 'function';
+  return createJSONSchemaTypeDefinition('string', 'date', options?.useBsonType, isRequired);
 };
 
 /*!

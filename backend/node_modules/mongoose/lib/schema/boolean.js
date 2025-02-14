@@ -5,9 +5,9 @@
  */
 
 const CastError = require('../error/cast');
-const SchemaType = require('../schematype');
+const SchemaType = require('../schemaType');
 const castBoolean = require('../cast/boolean');
-const utils = require('../utils');
+const createJSONSchemaTypeDefinition = require('../helpers/createJSONSchemaTypeDefinition');
 
 /**
  * Boolean SchemaType constructor.
@@ -64,6 +64,27 @@ SchemaBoolean._cast = castBoolean;
  */
 
 SchemaBoolean.set = SchemaType.set;
+
+SchemaBoolean.setters = [];
+
+/**
+ * Attaches a getter for all Boolean instances
+ *
+ * #### Example:
+ *
+ *     mongoose.Schema.Boolean.get(v => v === true ? 'yes' : 'no');
+ *
+ *     const Order = mongoose.model('Order', new Schema({ isPaid: Boolean }));
+ *     new Order({ isPaid: false }).isPaid; // 'no'
+ *
+ * @param {Function} getter
+ * @return {this}
+ * @function get
+ * @static
+ * @api public
+ */
+
+SchemaBoolean.get = SchemaType.get;
 
 /**
  * Get/set the function used to cast arbitrary values to booleans.
@@ -156,6 +177,8 @@ SchemaBoolean.prototype.checkRequired = function(value) {
  *     new M({ b: 'affirmative' }).b; // true
  *
  * @property convertToTrue
+ * @static
+ * @memberOf SchemaBoolean
  * @type {Set}
  * @api public
  */
@@ -176,6 +199,8 @@ Object.defineProperty(SchemaBoolean, 'convertToTrue', {
  *     new M({ b: 'nay' }).b; // false
  *
  * @property convertToFalse
+ * @static
+ * @memberOf SchemaBoolean
  * @type {Set}
  * @api public
  */
@@ -210,8 +235,7 @@ SchemaBoolean.prototype.cast = function(value) {
   }
 };
 
-SchemaBoolean.$conditionalHandlers =
-    utils.options(SchemaType.prototype.$conditionalHandlers, {});
+SchemaBoolean.$conditionalHandlers = { ...SchemaType.prototype.$conditionalHandlers };
 
 /**
  * Casts contents for queries.
@@ -221,19 +245,26 @@ SchemaBoolean.$conditionalHandlers =
  * @api private
  */
 
-SchemaBoolean.prototype.castForQuery = function($conditional, val) {
+SchemaBoolean.prototype.castForQuery = function($conditional, val, context) {
   let handler;
-  if (arguments.length === 2) {
+  if ($conditional != null) {
     handler = SchemaBoolean.$conditionalHandlers[$conditional];
 
     if (handler) {
       return handler.call(this, val);
     }
 
-    return this._castForQuery(val);
+    return this.applySetters(val, context);
   }
 
-  return this._castForQuery($conditional);
+  try {
+    return this.applySetters(val, context);
+  } catch (err) {
+    if (err instanceof CastError && err.path === this.path && this.$fullPath != null) {
+      err.path = this.$fullPath;
+    }
+    throw err;
+  }
 };
 
 /**
@@ -258,6 +289,19 @@ SchemaBoolean.prototype._castNullish = function _castNullish(v) {
     return true;
   }
   return v;
+};
+
+/**
+ * Returns this schema type's representation in a JSON schema.
+ *
+ * @param [options]
+ * @param [options.useBsonType=false] If true, return a representation with `bsonType` for use with MongoDB's `$jsonSchema`.
+ * @returns {Object} JSON schema properties
+ */
+
+SchemaBoolean.prototype.toJSONSchema = function toJSONSchema(options) {
+  const isRequired = this.options.required && typeof this.options.required !== 'function';
+  return createJSONSchemaTypeDefinition('boolean', 'bool', options?.useBsonType, isRequired);
 };
 
 /*!

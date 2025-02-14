@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-mongoose.set("strictQuery", true);
 
 const connectDB = async ()=>{
     mongoose.connection.on('connected',()=>{
@@ -10,4 +9,4 @@ const connectDB = async ()=>{
     
 }
 
-export default connectDB
+export default connectDB    

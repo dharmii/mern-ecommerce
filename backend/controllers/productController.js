@@ -1,6 +1,5 @@
 import {v2 as cloudinary} from 'cloudinary';
 import productModel from '../models/productModel.js';
-import { response } from 'express';
 
 // function for addProduct
 
