@@ -12,7 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "bson": "^6.10.2",
     "cloudinary": "^2.5.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -27,7 +26,8 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
-  },"engines": {
+  },
+  "engines": {
     "node": "16.x"
   }
 }
