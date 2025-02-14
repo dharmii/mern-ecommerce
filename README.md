@@ -14,7 +14,7 @@ Check Frontend Live Link Here : https://ecommercedharmika.vercel.app
 
 Check Backend Live Link Here: https://mern-ecommerce-r3hz.onrender.com
 
-Check AdminPanel Live Link Here : https://mern-ecommerceadminpanel-9dxtwa5u2.vercel.app/
+Check AdminPanel Live Link Here : https://mern-ecommerceadminpanel-9dxtwa5u2.vercel.app
 
 ## Features
 
